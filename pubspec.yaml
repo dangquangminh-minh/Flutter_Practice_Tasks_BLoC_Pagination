@@ -34,6 +34,7 @@ dependencies:
   flutter_bloc: ^8.1.5    # Thêm thư viện BLoC
   equatable: ^2.0.5       # Thêm thư viện Equatable
   http: ^1.2.1            # Thêm thư viện gọi API
+  bloc_concurrency: ^0.2.5
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'bai_01/post_page.dart'; 
 import 'bai_02/page.dart';
+
+import "bai_03/page.dart";
 void main() {
   runApp(const MyApp());
 }
@@ -63,6 +65,22 @@ class MenuPage extends StatelessWidget {
             },
             child: const Text(
               'Bài 2: Phân trang bằng nút Xem thêm', 
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+
+           // --- BÀI 3 ---
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+            onPressed: () {
+              
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Bai3()),
+              );
+            },
+            child: const Text(
+              'Bài 3: Infinite Scroll với BLoC', 
               style: TextStyle(fontSize: 16),
             ),
           ),
