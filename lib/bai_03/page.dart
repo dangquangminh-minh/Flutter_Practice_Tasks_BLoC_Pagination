@@ -5,8 +5,8 @@ import 'bloc.dart';
 import 'event.dart';
 import 'state.dart';
 
-
-// --- LỚP 1: CẤP VỐN (Khởi tạo BLoC) ---
+import 'package:shimmer/shimmer.dart'; // bonus: thêm skeleton loading cho trang đầu và animation xuất hiện item mới
+//lớp 1 khởi tạo bloc
 class Bai3 extends StatelessWidget {
   const Bai3({Key? key}) : super(key: key);
 
@@ -21,7 +21,7 @@ class Bai3 extends StatelessWidget {
 
 
 // bổ sung đổi stateless thành ful để làm thêm phần bonus task 2
-// --- LỚP 2: XÀI VỐN (Giao diện + Cảm biến cuộn) ---
+//lớp 2 : giao diện và thanh cuộn
 class Bai3View extends StatefulWidget {
   const Bai3View({Key? key}) : super(key: key);
 
@@ -57,6 +57,36 @@ final ScrollController _scrollController = ScrollController();
     });
   }
 
+  // --- BONUS 1: HÀM TẠO SKELETON LOADING ---
+  Widget _buildSkeletonLoader() {
+    return ListView.builder(
+      itemCount: 10, // Hiển thị tạm 10 cái khung xương
+      itemBuilder: (context, index) {
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: ListTile(
+            leading: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: const CircleAvatar(backgroundColor: Colors.white),
+            ),
+            title: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(height: 16, width: double.infinity, color: Colors.white),
+            ),
+            subtitle: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(height: 12, width: 150, color: Colors.white, margin: const EdgeInsets.only(top: 8)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -84,13 +114,14 @@ final ScrollController _scrollController = ScrollController();
         body: SafeArea(
           child: BlocBuilder<PaginationBloc, PaginationState>(
             builder: (context, state) {
+              
               if (state.isInitialLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              return _buildSkeletonLoader();   // thay vòng xoay thành skeleton so với trước khi làm bonus
+            }
               
               if (state.errorMessage.isNotEmpty && state.posts.isEmpty) {
                 return Center(child: Text(state.errorMessage));
-              }
+              }  // load giống facebook: hiện mấy cái khhung khi đang load data
 
               return ListView.builder(
                 controller: _scrollController, // bổ sung để đo độ cuộn 
@@ -126,12 +157,29 @@ final ScrollController _scrollController = ScrollController();
 
                   // Render bài viết bình thường
                   final post = state.posts[index];
-                  return Card(
+
+                  return TweenAnimationBuilder<double>(
+                  // valuekey: flutter bt item nào chạy animation rồi thì không chạy lại nx
+                  key: ValueKey(post.id), 
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 50 * (1 - value)), // Trượt lên 50px
+                      child: Opacity(
+                        opacity: value, // Hiệu ứng fade in
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Card(
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
                       leading: CircleAvatar(child: Text('${index + 1}')),
                       title: Text(post.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(post.body, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ),
                     ),
                   );
                 },
