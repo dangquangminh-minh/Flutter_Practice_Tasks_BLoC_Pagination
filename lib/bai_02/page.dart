@@ -5,13 +5,55 @@ import 'bloc.dart';
 import 'event.dart';
 import 'state.dart';
 
-class Bai2 extends StatelessWidget {
+// bổ sung đổi stateless thành ful để làm thêm phần bonus task 2
+class Bai2 extends StatefulWidget { 
+  @override
+  _Bai2State createState() => _Bai2State();
+}
+
+
+class _Bai2State extends State<Bai2> {
+
+// theo dõi ng dùng cuộn màn hình để hiển thị nút kéo lên đầu trang
+final ScrollController _scrollController = ScrollController();
+  bool _showBackToTopButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.offset >= 400) {
+        if (!_showBackToTopButton) setState(() => _showBackToTopButton = true);
+      } else {
+        if (_showBackToTopButton) setState(() => _showBackToTopButton = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => PaginationBloc(PostRepository())..add(FetchInitialData()),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Phân trang Xem thêm')),
+        appBar: AppBar(
+          title: BlocBuilder<PaginationBloc, PaginationState>(
+             builder: (context, state) => Text('Phân trang (${state.posts.length} bài)'),
+          ),
+        ),
+        // hiện nút cuộn 
+        floatingActionButton: _showBackToTopButton
+    ?     FloatingActionButton(
+         onPressed: () => _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+         child: const Icon(Icons.arrow_upward),
+         )
+         : null,
+
         body: SafeArea(
           child: BlocBuilder<PaginationBloc, PaginationState>(
             builder: (context, state) {
@@ -24,6 +66,7 @@ class Bai2 extends StatelessWidget {
               }
 
               return ListView.builder(
+                controller: _scrollController, // bổ sung để đo độ cuộn 
                 // Cộng 1 để chừa chỗ cho Widget dưới cùng (Nút Xem thêm / Loading / Thông báo)
                 itemCount: state.posts.length + 1,
                 itemBuilder: (context, index) {

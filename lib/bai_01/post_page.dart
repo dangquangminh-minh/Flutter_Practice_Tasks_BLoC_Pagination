@@ -47,9 +47,9 @@ class Bai1 extends StatelessWidget {
                 } 
                 
                 else if (state is PostSuccess) {
-                  return RefreshIndicator(
+                  return RefreshIndicator( // khi kéo xuống sẽ hiện 1 cái bòng tròn xoay
                     onRefresh: () async {
-                      context.read<PostBloc>().add(FetchPosts());
+                      context.read<PostBloc>().add(FetchPosts()); // gọi lại event để load lại ds
                     },
                     child: ListView.builder(
                       itemCount: state.posts.length,
