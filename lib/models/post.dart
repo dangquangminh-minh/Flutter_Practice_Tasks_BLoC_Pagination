@@ -1,3 +1,5 @@
+//jsonplaceholder
+// cho bài 1 2 3
 class Post {
   //các thuộc tính để lưu thông tin
   final int id;    
