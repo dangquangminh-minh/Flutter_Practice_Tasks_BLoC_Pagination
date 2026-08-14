@@ -89,7 +89,7 @@ class _Bai4ViewState extends State<Bai4View> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tìm kiếm & Phân trang (Bài 4)'),
+        title: const Text('Tìm kiếm & Phân trang'),
       ),
       body: Column(
         children: [
