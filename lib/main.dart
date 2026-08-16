@@ -8,6 +8,8 @@ import "bai_03/page.dart";
 import "bai_04/page.dart";
 
 import "bai_05/page.dart";
+
+import "bai_06/page.dart";
 void main() {
   runApp(const MyApp());
 }
@@ -120,6 +122,24 @@ class MenuPage extends StatelessWidget {
             },
             child: const Text(
               'Bài 5: Sản phẩm: Search, Filter, Sort', 
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // --- BÀI 6 ---
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+            onPressed: () {
+              
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Bai6()),
+              );
+            },
+            child: const Text(
+              'Bài 6: Cache và Retry', 
               style: TextStyle(fontSize: 16),
             ),
           ),
