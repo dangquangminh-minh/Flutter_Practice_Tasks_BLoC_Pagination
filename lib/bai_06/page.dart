@@ -64,7 +64,7 @@ class _ProductPage6State extends State<ProductPage6> {
       body: BlocConsumer<ProductBloc6, ProductState6>(
         listener: (context, state) {
           // Bắt lỗi Rollback thả tim từ BLoC để hiện thông báo (SnackBar)
-          if (state.loadMoreError.contains('thả tim')) {
+          if (state.loadMoreError.contains('Không có mạng')) { // .comtains() cứ có chữ 'k có mạng ' thì show snackbar
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.loadMoreError),

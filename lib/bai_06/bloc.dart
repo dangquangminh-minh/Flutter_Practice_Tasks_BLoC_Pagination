@@ -75,11 +75,11 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       // Giả lập thời gian gọi API mất 1 giây
       await Future.delayed(const Duration(seconds: 1));
       
-      // 
-      final bool isApiFailed = DateTime.now().second % 2 == 0; 
+      // update lại lỗi mất mạng và có mạng
+      if (state.isOffline) {
+        throw Exception("Rớt mạng, không thể gửi tim lên server"); 
+      }
       
-      if (isApiFailed) throw Exception("Lỗi Server khi thả tim");
-      // Nếu thành công thì không cần làm gì thêm vì UI đã xanh sẵn rồi
 
     } catch (e) {
       // rollback: if lỗi api thì lấy lại ds cũ và xóa hết phần trái tim đỏ
@@ -95,7 +95,7 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       // Trả lại state cũ và bắn lỗi ra bằng loadMoreError 
       emit(state.copyWith(
         products: rollbackProducts,
-        loadMoreError: 'Lỗi hệ thống: Không thể thả tim!', 
+        loadMoreError: 'Không có mạng nên không thể thả tim! ${DateTime.now().millisecond}', // ${DateTime.now().millisecond}giúp bloc phân bt sate cũ vs mới
       ));
     }
   }
