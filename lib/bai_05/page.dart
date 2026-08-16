@@ -141,16 +141,31 @@ class _ProductPageState extends State<ProductPage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Tìm kiếm sản phẩm...',
-                  prefixIcon: const Icon(Icons.search),
+                  // update icon tìm kiếm vào cuối ô nhập liệu
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.search, color: Colors.blue),
+                    onPressed: () {
+                      // Ẩn bàn phím ảo xuống cho dễ nhìn danh sách
+                      FocusManager.instance.primaryFocus?.unfocus();
+
+                      // lấy từ khóa hiện tại trong controller để gọi api
+                      final keyword = _searchController.text;
+                      final currentQuery = context.read<ProductBloc>().state.query;
+                      
+                      context.read<ProductBloc>().add(
+                        FilterChanged(currentQuery.copyWith(keyword: keyword)),
+                      );
+                    },
+                  ),
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                onSubmitted: (value) {
+                onSubmitted: (value) {   // ấn enter thay vì icon
                   // Gọi sự kiện FilterChanged với keyword mới
                   final currentQuery = context.read<ProductBloc>().state.query;
                   context.read<ProductBloc>().add(
