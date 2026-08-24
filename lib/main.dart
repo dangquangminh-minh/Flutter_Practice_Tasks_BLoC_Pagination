@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'features/app/presentation/app_router.dart';
+import 'features/auth/data/data_sources/auth_data_source.dart';
+import 'features/products/data/repositories/product_repository.dart';
+import 'features/products/data/data_sources/local_data_source.dart';
+import 'features/products/data/data_sources/remote_data_source.dart';
+import 'features/products/presentation/bloc/cache_retry_bloc.dart'; 
+import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 
-import 'bai_01/post_page.dart'; 
-import 'bai_02/page.dart';
+import 'features/profile/presentation/bloc/profile_bloc.dart'; 
+import 'features/profile/presentation/bloc/profile_event.dart';
 
-import "bai_03/page.dart";
-import "bai_04/page.dart";
-
-import "bai_05/page.dart";
-
-import "bai_06/page.dart";
 void main() {
   runApp(const MyApp());
 }
@@ -19,133 +22,55 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Thực tập BLoC',
-      debugShowCheckedModeBanner: false, // Tắt dải ruy-băng chữ Debug ở góc màn hình
-      home: const MenuPage(), // Đặt trang chủ là màn hình Menu
-    );
-  }
-}
-
-// 2. Màn hình Menu chính
-class MenuPage extends StatelessWidget {
-  const MenuPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thực Hành BLoC - 6 Bài'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // --- BÀI 1 ---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-              // Khi bấm vào sẽ điều hướng sang file post_page.dart
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai1()),
-              );
-            },
-            child: const Text(
-              'Bài 1: Danh sách bài viết với BLoC', 
-              style: TextStyle(fontSize: 16),
-            ),
+    
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AuthService>(
+          create: (context) => AuthService(),
+        ),
+        
+        RepositoryProvider<ProductRepository6>(
+          create: (context) => ProductRepository6(
+            localDataSource: LocalDataSource(),
+            remoteDataSource: RemoteDataSource(),
           ),
-          
-          const SizedBox(height: 16),
-          
-          // --- BÀI 2---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-             Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai2()),
-              );
-            },
-            child: const Text(
-              'Bài 2: Phân trang bằng nút Xem thêm', 
-              style: TextStyle(fontSize: 16),
+        ),
+      ],
+      
+    
+      child: MultiBlocProvider(
+        providers: [
+          // bloc đăng nhập/đăng ký 
+          BlocProvider<AuthBloc>(
+            create: (context) => AuthBloc(
+              context.read<AuthService>(),
             ),
           ),
 
-          const SizedBox(height: 16),
-          
-           // --- BÀI 3 ---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-              
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai3()),
-              );
-            },
-            child: const Text(
-              'Bài 3: Infinite Scroll với BLoC', 
-              style: TextStyle(fontSize: 16),
-            ),
+          // bloc hồ sơ cá nhân 
+          BlocProvider<ProfileBloc>(
+            create: (context) => ProfileBloc(
+              context.read<AuthService>(),
+            )..add(ProfileFetchStarted()), 
           ),
 
-          const SizedBox(height: 16),
-           // --- BÀI 4---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-             Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai4()),
-              );
-            },
-            child: const Text(
-              'Bài 4: Tìm kiếm kết hợp phân trang', 
-              style: TextStyle(fontSize: 16),
+          // bloc Sản phẩm
+          BlocProvider<ProductBloc6>(
+            create: (context) => ProductBloc6(
+              context.read<ProductRepository6>(), 
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // --- BÀI 5 ---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-              
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai5()),
-              );
-            },
-            child: const Text(
-              'Bài 5: Sản phẩm: Search, Filter, Sort', 
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // --- BÀI 6 ---
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
-            onPressed: () {
-              
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Bai6()),
-              );
-            },
-            child: const Text(
-              'Bài 6: Cache và Retry', 
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-
-          const SizedBox(height: 16),
         ],
+        
+        //giao diện
+        child: MaterialApp.router(
+          title: 'IT App',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          routerConfig: AppRouter.router, 
+        ),
       ),
     );
   }
