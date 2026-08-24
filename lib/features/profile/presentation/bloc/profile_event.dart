@@ -1,7 +1,7 @@
 abstract class ProfileEvent {}
 
-// Sự kiện khi vào trang cá nhân để lấy data
+// sk dô trag để lấy data
 class ProfileFetchStarted extends ProfileEvent {}
 
-// Sự kiện khi bấm nút đăng xuất
+// sk bấm nút đăng xuất
 class ProfileLogoutRequested extends ProfileEvent {}

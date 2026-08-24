@@ -4,7 +4,7 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthService authService; // nhận từ bên ngoài , không gọi trực tiếp 
+  final AuthService authService; // nhận từ bên ngoài , không gọi trực tiếp (authservice là auth/data/data_source/auth_data_source.dart(bài 6 cũ))
 
   AuthBloc(this.authService) : super(AuthInitial()) {
     // sk đăng nhập

@@ -69,7 +69,7 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
     }
   }
 
-  // x.lý s.kiện lọc
+  // x.lý s.kiện lọc , tk , sx
   Future<void> _onSearchQueryChanged(SearchQueryChanged event, Emitter<ProductState6> emit) async {
     emit(state.copyWith(searchQuery: event.query));
     

@@ -4,14 +4,14 @@ import 'profile_event.dart';
 import 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final AuthService authService; // Tiêu chí số 2: Nhận Service từ ngoài vào
+  final AuthService authService; 
 
   ProfileBloc(this.authService) : super(ProfileInitial()) {
     on<ProfileFetchStarted>(_onProfileFetchStarted);
     on<ProfileLogoutRequested>(_onProfileLogoutRequested);
   }
 
-  // Xử lý lấy thông tin user
+  // lấy thông tin user
   Future<void> _onProfileFetchStarted(
     ProfileFetchStarted event,
     Emitter<ProfileState> emit,
@@ -29,7 +29,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  // Xử lý đăng xuất
+  // đăng xuất
   Future<void> _onProfileLogoutRequested(
     ProfileLogoutRequested event,
     Emitter<ProfileState> emit,

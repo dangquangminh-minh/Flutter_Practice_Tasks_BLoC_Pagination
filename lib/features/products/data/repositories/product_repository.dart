@@ -18,28 +18,36 @@ class ProductRepository6 {
     String? selectedCategory,
     String? sortOrder,
   }) async {
-    // Chỉ cache nếu là trang đầu tiên VÀ không có bộ lọc nào được áp dụng
+    
+    // chỉ lưu cache khi tải trag đầu,k có từ hóa tìm kiếm ,và k có lọc danh mục
+
     if (skip == 0 && searchQuery.isEmpty && selectedCategory == null) {
       try {
+        // gọi api lấy dl mới nhất
         final remoteData = await remoteDataSource.fetchProducts(
           skip, limit,
           searchQuery: searchQuery,
           selectedCategory: selectedCategory,
           sortOrder: sortOrder,
         );
+
+        // nếu t.công thì lưu dô local để mốt rớt mạng thì vẫn có
         await localDataSource.cacheFirstPage(remoteData);
         return (data: remoteData, isOffline: false);
       } catch (e) {
+        // if rớt mạng hay sập
         if (e is NetworkException || e is ServerException) {
+          //lấy dl cache ra xài
           final cachedData = await localDataSource.getCachedFirstPage(); 
           if (cachedData != null && cachedData.isNotEmpty) {
+            //và bật offline
             return (data: cachedData, isOffline: true);
           }
         }
         rethrow;
       }
-    } else {
-      // Khi load thêm (skip > 0) hoặc đang dùng bộ lọc, bỏ qua local cache
+    } else { // khi k cache
+      // khi load thêm  hoặc đang dùng bộ lọc, bỏ qua local cache
       final remoteData = await remoteDataSource.fetchProducts(
         skip, limit,
         searchQuery: searchQuery,
