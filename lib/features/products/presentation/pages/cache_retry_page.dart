@@ -70,13 +70,25 @@ class _ProductPage6State extends State<ProductPage6> {
 
       
       body: BlocConsumer<ProductBloc6, ProductState6>(
+          listenWhen: (previous, current) {
+              // chỉ listener khi có thay đổi
+              return previous.loadMoreError != current.loadMoreError && current.loadMoreError.isNotEmpty;
+            },
+
         listener: (context, state) {
-          // bắt lỗi rollback thả tim hoặc lỗi khi load more 
-          if (state.loadMoreError.isNotEmpty) { 
+          
+           if (state.loadMoreError.isNotEmpty) {
+
+           final realMessage = state.loadMoreError.split('|').first.trim();
+
+           final isError = state.loadMoreError.toLowerCase().contains('lỗi') || 
+                      state.loadMoreError.toLowerCase().contains('không');
+
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();          
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.loadMoreError),
-                backgroundColor: Colors.red,
+                content: Text(realMessage), 
+                backgroundColor: isError ? Colors.red : Colors.green,
                 duration: const Duration(seconds: 2),
               ),
             );

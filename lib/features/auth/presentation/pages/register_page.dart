@@ -79,10 +79,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _emailCtrl,
                       decoration: const InputDecoration(labelText: 'Email'),
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) {
-                        if (value!.isEmpty) return 'Không được để trống';
-                        if (!value.contains('@')) return 'Email không hợp lệ'; // ktra format
-                        return null; 
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Không được để trống';
+                        }
+                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'); //r'^[\w-\.]+ : bắt buộc phải ghi tên trước dấu "." ,([\w-]+\.)+: tên của nhà mạng ,[\w-]{2,4} : phần đuôi phải có từ 2-4 ký tự
+                        if (!emailRegex.hasMatch(value.trim())) {
+                          return 'Email không hợp lệ '; 
+                        }
+                        return null;
                       },
                     ),
                     const SizedBox(height: 16),

@@ -28,7 +28,7 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
   
   //hàm tiện ích gộp chung logic gọi api lấy ds trag đầu
   Future<void> _fetchWithCurrentFilters(Emitter<ProductState6> emit) async {
-    emit(state.copyWith(isInitialLoading: true, initialError: ''));
+    emit(state.copyWith(isInitialLoading: true, initialError: '',loadMoreError: '',));
     try {
       final result = await repository.getProducts(
         0, 10,
@@ -71,19 +71,19 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
 
   // x.lý s.kiện lọc , tk , sx
   Future<void> _onSearchQueryChanged(SearchQueryChanged event, Emitter<ProductState6> emit) async {
-    emit(state.copyWith(searchQuery: event.query));
+    emit(state.copyWith(searchQuery: event.query, loadMoreError: ''));
     
     await Future.delayed(const Duration(milliseconds: 500));
     await _fetchWithCurrentFilters(emit);
   }
 
   Future<void> _onCategoryChanged(CategoryChanged event, Emitter<ProductState6> emit) async {
-    emit(state.copyWith(selectedCategory: event.category));
+    emit(state.copyWith(selectedCategory: event.category, loadMoreError: ''));
     await _fetchWithCurrentFilters(emit);
   }
 
   Future<void> _onSortOrderChanged(SortOrderChanged event, Emitter<ProductState6> emit) async {
-    emit(state.copyWith(sortOrder: event.sortOrder));
+    emit(state.copyWith(sortOrder: event.sortOrder, loadMoreError: ''));
     await _fetchWithCurrentFilters(emit);
   }
 
@@ -156,7 +156,7 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       thumbnail: targetProduct.thumbnail,
       isFavorite: !currentFavStatus, 
     );
-    emit(state.copyWith(products: updatedProducts));
+    emit(state.copyWith(products: updatedProducts, loadMoreError: ''));
 
     try {
       await Future.delayed(const Duration(seconds: 1));
@@ -175,7 +175,7 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       
       emit(state.copyWith(
         products: rollbackProducts,
-        loadMoreError: 'Không có mạng nên không thể thả tim! ${DateTime.now().millisecond}',
+        loadMoreError: 'Không có mạng nên không thể thả tim! | ${DateTime.now().millisecond}',
       ));
     }
   }
@@ -191,9 +191,9 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       );
       // chèn sản phẩm mới lên đầu danh sách
       final updatedList = List<Product>.from(state.products)..insert(0, newProduct);
-      emit(state.copyWith(products: updatedList, loadMoreError: 'Thêm sản phẩm thành công! ${DateTime.now().millisecond}'));
+      emit(state.copyWith(products: updatedList, loadMoreError: 'Thêm sản phẩm thành công! | ${DateTime.now().millisecond}'));
     } catch (e) {
-      emit(state.copyWith(loadMoreError: 'Lỗi: Không thể thêm sản phẩm! ${DateTime.now().millisecond}'));
+      emit(state.copyWith(loadMoreError: 'Lỗi: Không thể thêm sản phẩm! | ${DateTime.now().millisecond}'));
     }
   }
 
@@ -214,17 +214,17 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
       thumbnail: oldProduct.thumbnail,
       isFavorite: oldProduct.isFavorite,
     );
-    emit(state.copyWith(products: updatedList));
+    emit(state.copyWith(products: updatedList, loadMoreError: ''));
 
     try {
       await repository.updateProduct(id: event.id, title: event.title, price: event.price);
-      emit(state.copyWith(loadMoreError: 'Cập nhật thành công! ${DateTime.now().millisecond}'));
+      emit(state.copyWith(loadMoreError: 'Cập nhật thành công! | ${DateTime.now().millisecond}'));
     } catch (e) {
       // rollback nếu api lỗi
       updatedList[index] = oldProduct;
       emit(state.copyWith(
         products: updatedList,
-        loadMoreError: 'Lỗi mạng: Không thể cập nhật! ${DateTime.now().millisecond}',
+        loadMoreError: 'Lỗi mạng: Không thể cập nhật! | ${DateTime.now().millisecond}',
       ));
     }
   }
@@ -237,18 +237,18 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
     final deletedProduct = state.products[index];
     final updatedList = List<Product>.from(state.products)..removeAt(index);
 
-    // xóa tạm thời khỏi UI
-    emit(state.copyWith(products: updatedList));
+    // xóa tạm thời khỏi ui
+    emit(state.copyWith(products: updatedList, loadMoreError: ''));
 
     try {
       await repository.deleteProduct(event.id);
-      emit(state.copyWith(loadMoreError: 'Xóa sản phẩm thành công! ${DateTime.now().millisecond}'));
+      emit(state.copyWith(loadMoreError: 'Xóa sản phẩm thành công! | ${DateTime.now().millisecond}'));
     } catch (e) {
       // Rolrback: thêm lại sản phẩm vào vị trí cũ nếu xóa thất bại
       updatedList.insert(index, deletedProduct);
       emit(state.copyWith(
         products: updatedList,
-        loadMoreError: 'Lỗi mạng: Không thể xóa sản phẩm! ${DateTime.now().millisecond}',
+        loadMoreError: 'Lỗi mạng: Không thể xóa sản phẩm! | ${DateTime.now().millisecond}',
       ));
     }
   }
