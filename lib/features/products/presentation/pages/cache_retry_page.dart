@@ -34,7 +34,10 @@ class ProductPage6 extends StatefulWidget {
 
 class _ProductPage6State extends State<ProductPage6> {
   final ScrollController _scrollController = ScrollController();
-
+  final TextEditingController _searchProductController = TextEditingController();
+  bool _isGridView = false;
+  
+  
   @override
   void initState() {
     super.initState();
@@ -55,9 +58,10 @@ class _ProductPage6State extends State<ProductPage6> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bài 6 - Production'),
+        title: const Text('Danh Sách Sản Phẩm'),
         elevation: 0,
       ),
 
@@ -127,9 +131,24 @@ class _ProductPage6State extends State<ProductPage6> {
                         // thanh tìm kiếm
                         Expanded(
                           child: TextField(
-                            decoration: const InputDecoration(
+                            controller: _searchProductController,
+                            decoration:  InputDecoration(
                               hintText: 'Tìm kiếm sản phẩm...',
                               prefixIcon: Icon(Icons.search),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchProductController,
+                                builder: (context, value, child) {
+                                  return value.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.cancel, size: 20, color: Colors.grey),
+                                          onPressed: () {
+                                            _searchProductController.clear(); // Xóa chữ trên UI
+                                            context.read<ProductBloc6>().add(SearchQueryChanged('')); 
+                                          },
+                                        )
+                                      : const SizedBox.shrink();
+                                },
+                              ),
                               border: OutlineInputBorder(),
                               isDense: true,
                             ),
@@ -138,10 +157,24 @@ class _ProductPage6State extends State<ProductPage6> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 8),    
+
+                        // nút chuyển đổi qua lại grid vs list
+                        IconButton(
+                          icon: Icon(
+                            _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded, 
+                            color: Colors.deepPurple.shade700,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isGridView = !_isGridView; 
+                            });
+                          },
+                        ),
+
                         // nút chọn sắp xếp ( tăng gaimr)
                         PopupMenuButton<String>(
-                          icon: const Icon(Icons.sort),
+                          icon: Icon(Icons.sort, color: Colors.deepPurple.shade700), 
                           onSelected: (order) {
                             context.read<ProductBloc6>().add(SortOrderChanged(order));
                           },
@@ -169,14 +202,28 @@ class _ProductPage6State extends State<ProductPage6> {
                             itemCount: categories.length + 1,
                             itemBuilder: (context, index) {
                               if (index == 0) {
-                                final isSelected = state.selectedCategory == null;
+                                final isSelected = state.selectedCategory == null || state.selectedCategory == ''; // ktra cả rỗng và null
+                                
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: ChoiceChip(
                                     label: const Text('Tất cả'),
                                     selected: isSelected,
+                                    selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
+                                      backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                                      side: BorderSide(
+                                        color: isSelected 
+                                            ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
+                                            : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: isSelected 
+                                            ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
+                                            : (isDark ? Colors.white70 : Colors.black87),
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      ),
                                     onSelected: (_) {
-                                      context.read<ProductBloc6>().add(CategoryChanged(null));
+                                      context.read<ProductBloc6>().add(CategoryChanged('')); // thay null thành ''
                                     },
                                   ),
                                 );
@@ -189,6 +236,21 @@ class _ProductPage6State extends State<ProductPage6> {
                                 child: ChoiceChip(
                                   label: Text(category),
                                   selected: isSelected,
+                                  selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
+                                    backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                                    
+                                    side: BorderSide(
+                                      color: isSelected 
+                                          ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
+                                          : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                                    ),
+                                    
+                                    labelStyle: TextStyle(
+                                      color: isSelected 
+                                          ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
+                                          : (isDark ? Colors.white70 : Colors.black87),
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
                                   onSelected: (_) {
                                     context.read<ProductBloc6>().add(CategoryChanged(category));
                                   },
@@ -224,15 +286,81 @@ class _ProductPage6State extends State<ProductPage6> {
                 
               // dssp
               Expanded(
-                child: RefreshIndicator(
+                child: RefreshIndicator( // vuốt để lm mới
                   onRefresh: () async { 
                     final bloc = context.read<ProductBloc6>();
                     bloc.add(RefreshProducts6()); 
                     await bloc.stream.firstWhere((s) => s.isInitialLoading == false);
                   },
-                  child: ListView.builder(
+
+                  // ktra rỗng               
+                  child: state.products.isEmpty
+                      ? ListView(                        
+                          physics: const AlwaysScrollableScrollPhysics(), // ép ds luôn có thể cuộn ngay cả ds rỗng để pull to refresh
+                          children: [
+                            const SizedBox(height: 120), 
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.production_quantity_limits, size: 80, color: Colors.grey.shade300),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Không tìm thấy sản phẩm',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Không có sản phẩm nào khớp với từ khóa bạn vừa nhập.\nVui lòng thử một từ khóa khác.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                                ),
+                                const SizedBox(height: 24),
+                                // nút xóa t.kiếm
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.blueAccent.shade100),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    // xóa chữ thanh t.kiếm
+                                    _searchProductController.clear();
+                                    // gọi bloc laod lại ds
+                                    context.read<ProductBloc6>().add(SearchQueryChanged(''));
+                                  },
+                                  icon: const Icon(Icons.clear, color: Colors.blueAccent),
+                                  label: const Text('Xóa tìm kiếm', style: TextStyle(color: Colors.blueAccent)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+
+                    // ktra đang ở grid hay list
+                  : _isGridView
+                      ? GridView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(8),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // h.thị 2 cột
+                            childAspectRatio: 0.7, 
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: state.products.length + (state.isLoadingMore && !state.isOffline ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index < state.products.length) {
+                              return _buildProductGridCard(context, state.products[index]);
+                            }
+                            return const Center(child: CircularProgressIndicator());
+                          },
+                        )    
+                  : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(8),
+
+
                     itemCount: state.products.length + (state.isLoadingMore && !state.isOffline ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index < state.products.length) {
@@ -427,4 +555,78 @@ class _ProductPage6State extends State<ProductPage6> {
     );
   }
 
+  // card sp của grid
+  Widget _buildProductGridCard(BuildContext context, Product product) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // hình ảnh
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                product.thumbnail,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Center(child: Icon(Icons.image_not_supported)),
+              ),
+            ),
+          ),
+          // tiêu đề vs giá
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  maxLines: 1, // Dạng lưới hẹp nên chỉ cho hiện 1 dòng
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${product.price}',
+                  style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          //các nút tương tác
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                iconSize: 20,
+                icon: Icon(
+                  product.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: product.isFavorite ? Colors.red : Colors.grey,
+                ),
+                onPressed: () => context.read<ProductBloc6>().add(ToggleFavorite6(product)),
+              ),
+              PopupMenuButton<String>(
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    _showProductForm(context, productToEdit: product);
+                  } else if (value == 'delete') {                  
+                    context.read<ProductBloc6>().add(DeleteProductRequested(product.id));
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: Text('Sửa')),
+                  const PopupMenuItem(value: 'delete', child: Text('Xóa', style: TextStyle(color: Colors.red))),
+                ],
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
 }

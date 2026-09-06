@@ -5,7 +5,7 @@ import '../../domain/models/cache_retry_model.dart';
 class LocalDataSource {
   static const String _cacheKey = 'CACHED_PRODUCTS_PAGE_1';
 
-  // Lưu đè danh sách trang 1 vào máy
+  // lưu đè danh sách trang 1 vào máy
   //khi repo ném ds ra , nó sẽ mã hóa thành 1 chuồi văn bản json string để lưu bộ nhớ đthoại
   
   Future<void> cacheFirstPage(List<Product> products) async {
@@ -14,7 +14,7 @@ class LocalDataSource {
     await prefs.setString(_cacheKey, json.encode(jsonList)); // dung encode để mã hóa thành 1 chuỗi string duy nhất thì mới có thể nhét đủ vào bnhớ sharedfreferences
   }
 
-  // Đọc danh sách từ máy lên khi rớt mạng
+  // đọc danh sách từ máy lên khi rớt mạng
   // lấy chuỗi văn bản đc mã hóa trước đó dịch ngược lại thành danh sách sản phẩm đem lên ui
   Future<List<Product>?> getCachedFirstPage() async {
     final prefs = await SharedPreferences.getInstance();

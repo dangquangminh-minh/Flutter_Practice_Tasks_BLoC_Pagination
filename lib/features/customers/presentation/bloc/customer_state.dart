@@ -9,6 +9,9 @@ class CustomerState {
   final String searchQuery;
   final String filterRole; 
   final String sortOrder;
+  final bool isLoadingDetail;
+  final Customer? customerDetail;
+  final String detailErrorMessage;
 
   const CustomerState({
     this.customers = const [],
@@ -19,7 +22,9 @@ class CustomerState {
     this.searchQuery = '',
     this.filterRole = '',
     this.sortOrder = '',
-  
+    this.isLoadingDetail = false,
+    this.customerDetail,
+    this.detailErrorMessage = '',
   });
 
   CustomerState copyWith({
@@ -31,6 +36,9 @@ class CustomerState {
     String? searchQuery,
     String? filterRole,
     String? sortOrder,
+    bool? isLoadingDetail,
+    Customer? customerDetail,
+    String? detailErrorMessage,
   }) {
     return CustomerState(
       customers: customers ?? this.customers,
@@ -41,6 +49,22 @@ class CustomerState {
       searchQuery: searchQuery ?? this.searchQuery,
       filterRole: filterRole ?? this.filterRole,
       sortOrder: sortOrder ?? this.sortOrder,
+      isLoadingDetail: isLoadingDetail ?? this.isLoadingDetail,
+      customerDetail: customerDetail ?? this.customerDetail,
+      detailErrorMessage: detailErrorMessage ?? this.detailErrorMessage,
     );
   }
+}
+
+
+class CustomerDetailLoading extends CustomerState {}
+
+class CustomerDetailLoaded extends CustomerState {
+  final Customer customer;
+  CustomerDetailLoaded(this.customer);
+}
+
+class CustomerDetailError extends CustomerState {
+  final String message;
+  CustomerDetailError(this.message);
 }

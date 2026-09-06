@@ -62,16 +62,48 @@ class ProductRepository6 {
     return await remoteDataSource.fetchCategories();
   }
 
+  
 
-  Future<Product> addProduct({required String title, required double price, required String thumbnail}) async {
-    return await remoteDataSource.addProduct(title: title, price: price, thumbnail: thumbnail);
+
+ Future<Product> addProduct({required String title, required double price, required String thumbnail}) async {
+    final newProduct = await remoteDataSource.addProduct(title: title, price: price, thumbnail: thumbnail);
+    
+    // cập nhật vào cache local
+    final cachedData = await localDataSource.getCachedFirstPage();
+    if (cachedData != null) {
+      final updatedList = List<Product>.from(cachedData)..insert(0, newProduct); // hàng mới nên hiện lê trên cùng
+      await localDataSource.cacheFirstPage(updatedList); // cất vào cache
+    }
+    
+    return newProduct;
   }
 
+
   Future<Product> updateProduct({required int id, required String title, required double price}) async {
-    return await remoteDataSource.updateProduct(id: id, title: title, price: price);
+    final updatedProduct = await remoteDataSource.updateProduct(id: id, title: title, price: price);
+    
+    //ds cũ từ cache
+    final cachedData = await localDataSource.getCachedFirstPage();
+    if (cachedData != null) {
+      final updatedList = cachedData.map((item) { // dùng .map để duyệt qua dừng sp trong ds
+        return item.id == id ? updatedProduct : item;// trùng id thì update cái mới
+      }).toList();
+      await localDataSource.cacheFirstPage(updatedList); // lưu đè lên cache cũ
+    }
+    
+    return updatedProduct;
   }
 
   Future<bool> deleteProduct(int id) async {
-    return await remoteDataSource.deleteProduct(id);
+    final isSuccess = await remoteDataSource.deleteProduct(id);
+    if (isSuccess) {
+      
+      final cachedData = await localDataSource.getCachedFirstPage();
+      if (cachedData != null) {
+        final updatedList = cachedData.where((item) => item.id != id).toList();//where để lọc ds ,giữ lại những id khác vs id bị xóa
+        await localDataSource.cacheFirstPage(updatedList);// lưu lại thay đổi xóa vào cache
+      }
+    }
+    return isSuccess;
   }
 }

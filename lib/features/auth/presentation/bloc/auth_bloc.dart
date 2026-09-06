@@ -11,6 +11,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginSubmitted>(_onLoginSubmitted);
 
     on<AuthRegisterSubmitted>(_onRegisterSubmitted);
+
+    on<AuthForgotPasswordSubmitted>(_onForgotPasswordSubmitted);
+
+    on<AuthResetPasswordSubmitted>(_onResetPasswordSubmitted);
+
+    on<AuthOtpSubmitted>(_onOtpSubmitted);
   }
 
   // hàm xử lý các sk của đăng nhập
@@ -60,6 +66,58 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthRegisterSuccess()); // ok thì quay lại trag login
     } else {
       emit(AuthFailure('Đăng ký thất bại! Vui lòng thử lại.'));
+    }
+  }
+
+  //hàm x.lý quên m.khẩu
+  Future<void> _onForgotPasswordSubmitted(
+    AuthForgotPasswordSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      final isEmailValid = await authService.checkEmailExists(event.email);
+
+      if (isEmailValid) {
+        // thấy email thì phát ra state t.công
+        emit(AuthForgotPasswordSuccess(event.email));
+      } else {
+        emit(AuthFailure('Email không tồn tại trong hệ thống!'));
+      }
+    } catch (e) {
+      emit(AuthFailure('Lỗi kết nối máy chủ. Vui lòng thử lại sau!'));
+    }
+  }
+
+  Future<void> _onResetPasswordSubmitted(
+    AuthResetPasswordSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    // hiện v.xoay
+    emit(AuthLoading());
+
+    // giả lập time update api
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // dumsjon k hỗ trợ nên ném ra t.công luôn
+    emit(AuthResetPasswordSuccess());
+  }
+
+  Future<void> _onOtpSubmitted(
+    AuthOtpSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+
+    emit(AuthLoading());
+
+    // giả lập
+    await Future.delayed(const Duration(seconds: 1));
+    //fake api trả về otp
+    if (event.otp == '123456') {
+      emit(AuthOtpSuccess());
+    } else {
+      emit(AuthFailure('Mã OTP không chính xác!'));
     }
   }
 }

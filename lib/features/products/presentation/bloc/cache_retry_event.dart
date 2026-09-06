@@ -53,3 +53,4 @@ class DeleteProductRequested extends ProductEvent6 {
   final int id;
   DeleteProductRequested(this.id);
 }
+

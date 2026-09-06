@@ -32,7 +32,7 @@ void main() {
       // Bước 1: Khởi tạo Bloc với state ban đầu đã có 1 khách hàng
       build: () {
         when(() => mockRepository.getCustomers(1, 10, searchQuery: '', filterRole: '', sortOrder: ''))
-            .thenAnswer((_) async => moreCustomers);
+            .thenAnswer((_) async => (data: moreCustomers, isOffline: false));
         return CustomerBloc(mockRepository);
       },
       seed: () => CustomerState(customers: initialCustomers, hasReachedMax: false),

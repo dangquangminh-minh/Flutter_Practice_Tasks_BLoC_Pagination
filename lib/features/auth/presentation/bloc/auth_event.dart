@@ -22,4 +22,23 @@ class AuthRegisterSubmitted extends AuthEvent {
     required this.email,
     required this.password,
   });
+
+}
+
+// s.kiện quên m.khẩu
+class AuthForgotPasswordSubmitted extends AuthEvent {
+  final String email;
+  AuthForgotPasswordSubmitted(this.email);
+}
+
+// s.kiện gửi mã otp xác thực
+class AuthOtpSubmitted extends AuthEvent {
+  final String otp;
+  AuthOtpSubmitted(this.otp);
+}
+
+//sk gửi y/c đổi m.khẩu mới
+class AuthResetPasswordSubmitted extends AuthEvent {
+  final String newPassword;
+  AuthResetPasswordSubmitted(this.newPassword);
 }

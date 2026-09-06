@@ -36,4 +36,18 @@ class Customer {
       addressCity: json['address'] != null ? json['address']['city'] ?? 'N/A' : 'N/A',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'phone': phone,
+      'role': role,
+      'image': image, 
+      'company': { 'title': companyTitle }, 
+    'address': { 'city': addressCity }    
+    };
+  }
 }

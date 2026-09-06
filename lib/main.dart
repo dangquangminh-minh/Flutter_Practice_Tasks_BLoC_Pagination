@@ -1,3 +1,7 @@
+import 'package:bai_01/features/app/presentation/bloc/theme_bloc.dart';
+import 'package:bai_01/features/app/presentation/bloc/theme_state.dart';
+import 'package:bai_01/features/customers/data/data_sources/customer_local_data_source.dart';
+import 'package:bai_01/features/profile/data/data_sources/profile_data_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +15,10 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 
 import 'features/profile/presentation/bloc/profile_bloc.dart'; 
-import 'features/profile/presentation/bloc/profile_event.dart';
+import 'features/customers/data/repositories/customer_repository.dart';
+import 'features/customers/data/data_sources/customer_remote_data_source.dart';
+import 'features/customers/presentation/bloc/customer_bloc.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -29,10 +36,21 @@ class MyApp extends StatelessWidget {
           create: (context) => AuthService(),
         ),
         
+        RepositoryProvider<ProfileService>(
+          create: (context) => ProfileService(),
+        ),
+        
         RepositoryProvider<ProductRepository6>(
           create: (context) => ProductRepository6(
             localDataSource: LocalDataSource(),
             remoteDataSource: RemoteDataSource(),
+          ),
+        ),
+
+        RepositoryProvider<CustomerRepository>(
+          create: (context) => CustomerRepository(
+           remoteDataSource: CustomerRemoteDataSource(),
+           localDataSource: CustomerLocalDataSource(),
           ),
         ),
       ],
@@ -40,10 +58,12 @@ class MyApp extends StatelessWidget {
     
       child: MultiBlocProvider(
         providers: [
+          
           // bloc đăng nhập/đăng ký 
           BlocProvider<AuthBloc>(
             create: (context) => AuthBloc(
               context.read<AuthService>(),
+              
             ),
           ),
 
@@ -51,7 +71,8 @@ class MyApp extends StatelessWidget {
           BlocProvider<ProfileBloc>(
             create: (context) => ProfileBloc(
               context.read<AuthService>(),
-            )..add(ProfileFetchStarted()), 
+               context.read<ProfileService>(),
+            ),
           ),
 
           // bloc Sản phẩm
@@ -60,16 +81,36 @@ class MyApp extends StatelessWidget {
               context.read<ProductRepository6>(), 
             ),
           ),
+
+          BlocProvider<CustomerBloc>(
+            create: (context) => CustomerBloc(
+               context.read<CustomerRepository>(),
+           )
+          ),
+
+          BlocProvider<ThemeBloc>(
+            create: (context) => ThemeBloc(),
+          ),
         ],
         
-        //giao diện
-        child: MaterialApp.router(
-          title: 'IT App',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
-          routerConfig: AppRouter.router, 
+        
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, themeState) {
+            return MaterialApp.router(
+              title: 'IT App',
+              debugShowCheckedModeBanner: false,
+              showSemanticsDebugger: false,
+              
+              // cấu hình theme sáng , tối
+              theme: ThemeData.light(),
+              darkTheme: ThemeData.dark(),
+              
+              // đọc state từ bloc để quyết định màu
+              themeMode: themeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              
+              routerConfig: AppRouter.router, 
+            );
+          },
         ),
       ),
     );

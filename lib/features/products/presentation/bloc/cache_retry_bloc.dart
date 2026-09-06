@@ -23,6 +23,8 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
     on<AddProductRequested>(_onAddProduct);
     on<UpdateProductRequested>(_onUpdateProduct);
     on<DeleteProductRequested>(_onDeleteProduct);
+
+
   }
 
   
@@ -253,5 +255,6 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
     }
   }
 
+  
 
 }

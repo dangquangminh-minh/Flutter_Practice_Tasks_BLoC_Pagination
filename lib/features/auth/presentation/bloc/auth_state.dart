@@ -9,3 +9,14 @@ class AuthFailure extends AuthState {
 }
 
 class AuthRegisterSuccess extends AuthState {}
+
+class AuthForgotPasswordSuccess extends AuthState {
+  final String email;
+  AuthForgotPasswordSuccess(this.email);
+}
+
+// xác thực t.công
+class AuthOtpSuccess extends AuthState {}
+
+//đổi mật khẩu thành công
+class AuthResetPasswordSuccess extends AuthState {}
