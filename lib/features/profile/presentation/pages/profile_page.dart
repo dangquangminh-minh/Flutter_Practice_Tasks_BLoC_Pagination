@@ -44,9 +44,34 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(child: CircularProgressIndicator());
           } 
           
-          // else if (state is ProfileError) {
-          //   return Center(child: Text(state.message));
-          // } 
+          else if (state is ProfileError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.redAccent),
+                  const SizedBox(height: 16),
+                  Text(
+                    'phiên đăng nhập hết hạn hoặc lỗi.\n${state.message}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {                   
+                      context.go(AppRouter.login);//đá n,dùng qua login vì refresh token hết hạn
+                    },
+                    icon: const Icon(Icons.login),
+                    label: const Text('Đăng nhập lại'),
+                  ),
+                ],
+              ),
+            );
+          }
           
           //lấy data thành công  hiển thị avatar và tt
           else if (state is ProfileLoaded) {
