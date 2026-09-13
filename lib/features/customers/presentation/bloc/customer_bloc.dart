@@ -5,6 +5,7 @@ import 'customer_state.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../domain/models/customer_model.dart';
 
+
 class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
     final CustomerRepository repository;
 
@@ -13,8 +14,8 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
       on<LoadMoreCustomers>(_onLoadMore, transformer: droppable()); // xl phân trang 
       on<SearchCustomersChanged>(_onSearchQueryChanged, transformer: restartable()); // xl tìm kiếm
 
-      on<CustomerFilterRoleChanged>(_onFilterRoleChanged);
-      on<CustomerSortOrderChanged>(_onSortOrderChanged);
+      on<CustomerFilterRoleChanged>(_onFilterRoleChanged,transformer: restartable(),);
+      on<CustomerSortOrderChanged>(_onSortOrderChanged,transformer: restartable(),);
       on<GetCustomerDetailEvent>(_onGetCustomerDetail);
 
       on<AddCustomerRequested>(_onAddCustomer);

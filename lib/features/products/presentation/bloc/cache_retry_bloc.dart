@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'cache_retry_event.dart';
@@ -16,8 +17,8 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
     
     // xử lý lọc và tìm kiếm,sx
     on<SearchQueryChanged>(_onSearchQueryChanged, transformer: restartable());
-    on<CategoryChanged>(_onCategoryChanged);
-    on<SortOrderChanged>(_onSortOrderChanged);
+    on<CategoryChanged>(_onCategoryChanged,transformer: restartable(),);
+    on<SortOrderChanged>(_onSortOrderChanged,transformer: restartable(),);
 
 
     on<AddProductRequested>(_onAddProduct);
@@ -67,6 +68,11 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
         } else {
            emit(state.copyWith(isInitialLoading: false, initialError: 'Mất mạng và không có dữ liệu cũ.'));
         }
+       } else if (e is ServerException) {
+        errorMsg = 'Lỗi hệ thống máy chủ.';
+        emit(state.copyWith(isInitialLoading: false, initialError: errorMsg));
+      } else {
+        emit(state.copyWith(isInitialLoading: false, initialError: 'Lỗi không xác định: $e'));
       }
     }
   }
@@ -91,6 +97,17 @@ class ProductBloc6 extends Bloc<ProductEvent6, ProductState6> {
 
   
   Future<void> _onFetchInitial(FetchInitialData6 event, Emitter<ProductState6> emit) async {
+    // ktra có danh mục trong state ch
+    // nếu ch thì gọi api đi lấy 1 lần
+    if (state.categories.isEmpty) {
+      try {
+        final categories = await repository.getCategories();
+        // lấy xong thì lưu vào state lm cache
+        emit(state.copyWith(categories: categories)); 
+      } catch (e) {
+        debugPrint('Lỗi tải danh mục: $e'); 
+      }
+    }
     await _fetchWithCurrentFilters(emit);
   }
 

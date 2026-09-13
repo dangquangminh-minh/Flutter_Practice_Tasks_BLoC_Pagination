@@ -13,8 +13,8 @@ class ProductState6 {
   final String searchQuery;
   final String? selectedCategory;
   final String? sortOrder; // asc ,desc
-
-// constructor
+  final List<String> categories;
+  // constructor
   const ProductState6({
     this.products = const [],
     this.isInitialLoading = false,
@@ -28,6 +28,7 @@ class ProductState6 {
     this.searchQuery = '',
     this.selectedCategory,
     this.sortOrder,
+    this.categories = const [],
   });
 
   ProductState6 copyWith({
@@ -43,6 +44,7 @@ class ProductState6 {
     String? searchQuery,
     String? selectedCategory,
     String? sortOrder,
+    List<String>? categories,
   }) {
     return ProductState6(
       products: products ?? this.products,
@@ -52,11 +54,10 @@ class ProductState6 {
       initialError: initialError ?? this.initialError,
       loadMoreError: loadMoreError ?? this.loadMoreError,
       isOffline: isOffline ?? this.isOffline,
-      
-      // Gán giá trị mới (Đừng quên phần này nha!)
       searchQuery: searchQuery ?? this.searchQuery,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       sortOrder: sortOrder ?? this.sortOrder,
+      categories: categories ?? this.categories,
     );
   }
 }

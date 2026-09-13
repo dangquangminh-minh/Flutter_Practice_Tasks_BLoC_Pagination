@@ -18,10 +18,9 @@ class ProductRepository6 {
     String? selectedCategory,
     String? sortOrder,
   }) async {
-    
+    final isCategoryEmpty = selectedCategory == null || selectedCategory.isEmpty;
     // chỉ lưu cache khi tải trag đầu,k có từ hóa tìm kiếm ,và k có lọc danh mục
-
-    if (skip == 0 && searchQuery.isEmpty && selectedCategory == null) {
+    if (skip == 0 && searchQuery.isEmpty && isCategoryEmpty) {
       try {
         // gọi api lấy dl mới nhất
         final remoteData = await remoteDataSource.fetchProducts(

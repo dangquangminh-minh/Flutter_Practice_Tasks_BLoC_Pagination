@@ -99,7 +99,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // giả lập time update api
     await Future.delayed(const Duration(milliseconds: 1500));
-
+    await authService.logout();
     // dumsjon k hỗ trợ nên ném ra t.công luôn
     emit(AuthResetPasswordSuccess());
   }

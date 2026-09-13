@@ -14,7 +14,7 @@ import 'package:bai_01/features/auth/presentation/pages/register_page.dart';
 import 'package:bai_01/features/customers/presentation/pages/customer_detail_page.dart';
 import 'package:bai_01/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:bai_01/features/profile/presentation/pages/change_password_page.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AppRouter {
   static const String product = '/product'; //cache_retry // tránh gõ sai đg link chỉ gần gọi approuter.product
   static const String customer = '/customer';
@@ -33,6 +33,24 @@ class AppRouter {
   
   static final GoRouter router = GoRouter(
     initialLocation: splash, // mới chạy app là bay dô splash
+
+    redirect: (context, state) async {
+      // không đc vào nếu ch đăng nhập
+      final isGoingToProtected = state.matchedLocation.startsWith(product) || state.matchedLocation.startsWith(customer) || state.matchedLocation.startsWith(profile);
+      if (isGoingToProtected) {
+        // ktra có lưu token k
+        const storage = FlutterSecureStorage();
+        final token = await storage.read(key: 'accessToken');
+
+        // k có thì đá về login
+        if (token == null || token.isEmpty) {
+          return login; 
+        }
+      }
+      // có thì bthg
+      return null; 
+    },
+
     routes: [
 
       // otp

@@ -1,4 +1,4 @@
-import 'package:bai_01/features/customers/data/data_sources/customer_local_data_source.dart';
+
 import 'package:bai_01/features/customers/domain/models/customer_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,8 +6,6 @@ import '../bloc/customer_bloc.dart';
 import '../bloc/customer_event.dart';
 import '../bloc/customer_state.dart';
 
-import '../../data/repositories/customer_repository.dart';
-import '../../data/data_sources/customer_remote_data_source.dart';
 import 'package:go_router/go_router.dart';
 
 class CustomerPage extends StatefulWidget {
@@ -401,7 +399,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                   Text(state.errorMessage, style: const TextStyle(color: Colors.red)),
                                   const SizedBox(height: 8),
                                   ElevatedButton.icon(
-                                    onPressed: () => context.read<CustomerBloc>().add(LoadMoreCustomers()), // Bấm vào để gọi lại event load more
+                                    onPressed: () => context.read<CustomerBloc>().add(FetchCustomersInitial()), // Bấm vào để gọi lại event load more
                                     icon: const Icon(Icons.refresh),
                                     label: const Text('Thử lại'),
                                   ),
@@ -540,16 +538,7 @@ class CustomerFeatureEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CustomerBloc(
-        CustomerRepository(
-          remoteDataSource: CustomerRemoteDataSource(),
-          localDataSource: CustomerLocalDataSource(),
-        ),
-      ),
-      child: const CustomerPage(),
-    );
+    return const CustomerPage();
   }
 
-  
 }

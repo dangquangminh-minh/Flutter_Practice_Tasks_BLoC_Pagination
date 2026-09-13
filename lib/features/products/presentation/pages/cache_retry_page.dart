@@ -4,28 +4,20 @@ import '../bloc/cache_retry_bloc.dart';
 import '../bloc/cache_retry_event.dart';
 import '../bloc/cache_retry_state.dart';
 import '../../domain/models/cache_retry_model.dart';
-import '../../data/repositories/product_repository.dart';
-import '../../data/data_sources/local_data_source.dart';
-import '../../data/data_sources/remote_data_source.dart';
+
 
 class Bai6 extends StatelessWidget {
   const Bai6({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProductBloc6(
-        ProductRepository6(
-          localDataSource: LocalDataSource(),
-          remoteDataSource: RemoteDataSource(),
-        ),
-      )..add(FetchInitialData6()),
-      child: const ProductPage6(),
-    );
+    // Trả thẳng về giao diện, bỏ cái BlocProvider trùng lặp đi
+    return const ProductPage6(); 
   }
 }
 
 class ProductPage6 extends StatefulWidget {
+
   const ProductPage6({super.key});
 
   @override
@@ -41,6 +33,11 @@ class _ProductPage6State extends State<ProductPage6> {
   @override
   void initState() {
     super.initState();
+
+    if (context.read<ProductBloc6>().state.products.isEmpty) {
+      context.read<ProductBloc6>().add(FetchInitialData6());
+    }
+
     _scrollController.addListener(_onScroll);
   }
 
@@ -187,76 +184,66 @@ class _ProductPage6State extends State<ProductPage6> {
                     ),
                     const SizedBox(height: 8),
                     
-                    // ô lọc
+                    // ô lọc danh mục 
                     SizedBox(
                       height: 40,
-                      child: FutureBuilder<List<String>>(
-                        future: context.read<ProductBloc6>().repository.getCategories(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return const SizedBox.shrink(); 
-                          }
-                          final categories = snapshot.data!;
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: categories.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                final isSelected = state.selectedCategory == null || state.selectedCategory == ''; // ktra cả rỗng và null
-                                
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: ChoiceChip(
-                                    label: const Text('Tất cả'),
-                                    selected: isSelected,
-                                    selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
-                                      backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
-                                      side: BorderSide(
-                                        color: isSelected 
-                                            ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
-                                            : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
-                                      ),
-                                      labelStyle: TextStyle(
-                                        color: isSelected 
-                                            ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
-                                            : (isDark ? Colors.white70 : Colors.black87),
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      ),
-                                    onSelected: (_) {
-                                      context.read<ProductBloc6>().add(CategoryChanged('')); // thay null thành ''
-                                    },
-                                  ),
-                                );
-                              }
-
-                              final category = categories[index - 1];
-                              final isSelected = state.selectedCategory == category;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: ChoiceChip(
-                                  label: Text(category),
-                                  selected: isSelected,
-                                  selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
-                                    backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
-                                    
-                                    side: BorderSide(
-                                      color: isSelected 
-                                          ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
-                                          : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
-                                    ),
-                                    
-                                    labelStyle: TextStyle(
-                                      color: isSelected 
-                                          ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
-                                          : (isDark ? Colors.white70 : Colors.black87),
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  onSelected: (_) {
-                                    context.read<ProductBloc6>().add(CategoryChanged(category));
-                                  },
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: state.categories.length + 1, 
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            final isSelected = state.selectedCategory == null || state.selectedCategory == ''; 
+                            
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: const Text('Tất cả'),
+                                selected: isSelected,
+                                selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
+                                backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                                side: BorderSide(
+                                  color: isSelected 
+                                      ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
+                                      : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                                 ),
-                              );
-                            },
+                                labelStyle: TextStyle(
+                                  color: isSelected 
+                                      ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
+                                      : (isDark ? Colors.white70 : Colors.black87),
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                                onSelected: (_) {
+                                  context.read<ProductBloc6>().add(CategoryChanged('')); 
+                                },
+                              ),
+                            );
+                          }
+
+                          final category = state.categories[index - 1]; 
+                          final isSelected = state.selectedCategory == category;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(category),
+                              selected: isSelected,
+                              selectedColor: isDark ? Colors.deepPurple.shade900 : Colors.deepPurple.shade50,
+                              backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                              side: BorderSide(
+                                color: isSelected 
+                                    ? (isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200) 
+                                    : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                              ),
+                              labelStyle: TextStyle(
+                                color: isSelected 
+                                    ? (isDark ? Colors.deepPurple.shade200 : Colors.deepPurple.shade700) 
+                                    : (isDark ? Colors.white70 : Colors.black87),
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                              onSelected: (_) {
+                                context.read<ProductBloc6>().add(CategoryChanged(category));
+                              },
+                            ),
                           );
                         },
                       ),

@@ -67,11 +67,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       try {
         //lấy id của user hiện tại
         final userId = currentState.userData['id']; 
+              
+        final fullName = event.fullName.trim();
+        final nameParts = fullName.split(' '); 
         
+        final firstName = nameParts.last; 
+        final lastName = nameParts.length > 1 
+            ? nameParts.sublist(0, nameParts.length - 1).join(' ') // họ và tên đệm
+            : '';
+
        final updatedDataFromApi = await profileService.updateProfile(
           userId: userId,
-          firstName: event.fullName,
-          lastName: '', 
+          firstName: firstName,
+          lastName: lastName, 
           email: event.email,
           phone: event.phone,
         );         
@@ -110,7 +118,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           newPassword: event.newPassword,
         );
 
-        if (isSuccess) {
+        if (isSuccess) {  
+          await authService.logout();
           emit(ProfileLogoutSuccess());
         } else {
           emit(ProfileError("Lỗi server. Không thể cập nhật."));

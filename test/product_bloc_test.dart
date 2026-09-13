@@ -2,20 +2,28 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-
-import 'package:bai_01/features/products/presentation/bloc/cache_retry_bloc.dart'; // Chứa ProductBloc6
+import 'package:bai_01/features/products/presentation/bloc/cache_retry_bloc.dart'; 
 import 'package:bai_01/features/products/presentation/bloc/cache_retry_event.dart';
 import 'package:bai_01/features/products/presentation/bloc/cache_retry_state.dart';
 import 'package:bai_01/features/products/data/repositories/product_repository.dart';
-import 'package:bai_01/features/products/domain/models/cache_retry_model.dart'; // Chứa class Product
+import 'package:bai_01/features/products/domain/models/cache_retry_model.dart'; 
 
 class MockProductRepository extends Mock implements ProductRepository6 {}
+
+
+class FakeProductResponse {
+  final List<Product> data;
+  final bool isOffline;
+  FakeProductResponse({required this.data, required this.isOffline});
+}
 
 void main() {
   late MockProductRepository mockRepository;
 
   setUp(() {
     mockRepository = MockProductRepository();
+
+    registerFallbackValue(0);
   });
 
   group('ProductBloc6 - CRUD Test', () {
@@ -76,6 +84,63 @@ void main() {
         // Lần 2: Báo thành công
         isA<ProductState6>()
             .having((state) => state.loadMoreError.contains('Xóa sản phẩm thành công'), 'Thông báo xóa', true),
+      ],
+    );
+  });
+
+ // test filter
+  group('ProductBloc6 - Filter & Retry Tests', () {
+    blocTest<ProductBloc6, ProductState6>(
+      'Filter nhanh: Đợi 500ms mới gọi API khi người dùng gõ tìm kiếm',
+      build: () {
+        when(() => mockRepository.getProducts(
+          any(), any(), 
+          searchQuery: any(named: 'searchQuery'),
+          selectedCategory: any(named: 'selectedCategory'),
+          sortOrder: any(named: 'sortOrder'),
+        )).thenAnswer((_) async =>         
+           (data: <Product>[], isOffline: false) 
+        );
+        
+        return ProductBloc6(mockRepository);
+      },
+      act: (bloc) => bloc.add(SearchQueryChanged('Iphone')),
+      wait: const Duration(milliseconds: 500), 
+      expect: () => [
+        // nhận keyword tìm kiếm vào state
+        isA<ProductState6>()
+            .having((state) => state.searchQuery, 'searchQuery', 'Iphone')
+            .having((state) => state.isInitialLoading, 'isInitialLoading', false),
+        //chờ 500ms xong, bắt đầu bật loading đi lấy api
+        isA<ProductState6>()
+            .having((state) => state.searchQuery, 'searchQuery', 'Iphone')
+            .having((state) => state.isInitialLoading, 'isInitialLoading', true),
+        //lấy xong, tắt loading
+        isA<ProductState6>()
+            .having((state) => state.isInitialLoading, 'isInitialLoading', false),
+      ],
+    );
+
+    blocTest<ProductBloc6, ProductState6>(
+      'Retry Filter: Nút làm mới phải gọi lại API và xóa thông báo lỗi mạng',
+      build: () {
+        when(() => mockRepository.getProducts(
+          any(), any(),
+          searchQuery: any(named: 'searchQuery'),
+          selectedCategory: any(named: 'selectedCategory'),
+          sortOrder: any(named: 'sortOrder'),
+        )).thenAnswer((_) async => 
+           (data: <Product>[], isOffline: false)
+        );
+        
+        return ProductBloc6(mockRepository);
+      },
+      seed: () => const ProductState6(loadMoreError: 'Lỗi mạng', isOffline: true),
+      act: (bloc) => bloc.add(RefreshProducts6()),
+      expect: () => [
+        isA<ProductState6>()
+            .having((state) => state.loadMoreError, 'loadMoreError', '')
+            .having((state) => state.isOffline, 'isOffline', false),
       ],
     );
   });

@@ -163,7 +163,8 @@ Future<bool> hasToken() async { // ktra coi ng dùng đã đnhap chưa dựa tr�
     try {
       // xóa khóa ra khỏi nơi lưu
       await _storage.delete(key: 'accessToken');
-      debugPrint('Đã xóa Token, đăng xuất thành công!');
+      await _storage.delete(key: 'refreshToken');
+      debugPrint('Đã xóa hết Token, đăng xuất thành công!');
     } catch (e) {
       debugPrint('Lỗi khi đăng xuất: $e');
     }
