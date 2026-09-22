@@ -1,7 +1,14 @@
 import 'package:bai_01/features/app/presentation/bloc/theme_bloc.dart';
 import 'package:bai_01/features/app/presentation/bloc/theme_state.dart';
+import 'package:bai_01/features/carts/data/data_sources/cart_local_data_source.dart';
+import 'package:bai_01/features/carts/data/data_sources/cart_remote_data_source.dart';
+import 'package:bai_01/features/carts/data/repositories/cart_repository.dart';
+import 'package:bai_01/features/carts/presentation/bloc/active_cart_bloc/active_cart_bloc.dart';
 import 'package:bai_01/features/customers/data/data_sources/customer_local_data_source.dart';
 import 'package:bai_01/features/profile/data/data_sources/profile_data_source.dart';
+import 'package:bai_01/features/support/data/data_sources/support_remote_data_source.dart';
+import 'package:bai_01/features/support/data/repositories/support_repository.dart';
+import 'package:bai_01/features/support/presentation/bloc/support_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -53,7 +60,21 @@ class MyApp extends StatelessWidget {
            localDataSource: CustomerLocalDataSource(),
           ),
         ),
+
+        RepositoryProvider<CartRepository>(
+          create: (context) => CartRepository(
+            remoteDataSource: CartRemoteDataSource(), 
+            localDataSource: CartLocalDataSource(),   
+          ),
+        ),
+
+       RepositoryProvider<SupportRepository>(
+          create: (context) => SupportRepository(
+            remoteDataSource: SupportRemoteDataSource(),
+          ),
+        ),
       ],
+      
       
     
       child: MultiBlocProvider(
@@ -91,8 +112,21 @@ class MyApp extends StatelessWidget {
           BlocProvider<ThemeBloc>(
             create: (context) => ThemeBloc(),
           ),
+
+           BlocProvider<SupportBloc>(
+            create: (context) => SupportBloc(
+              context.read<SupportRepository>(), 
+            ),
+          ),
+
+          BlocProvider<ActiveCartBloc>(
+            create: (context) => ActiveCartBloc(
+              context.read<CartRepository>(),
+            ),
+          ),
         ],
         
+      
         
         child: BlocBuilder<ThemeBloc, ThemeState>(
           builder: (context, themeState) {

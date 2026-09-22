@@ -1,5 +1,11 @@
+import 'package:bai_01/features/app/presentation/app_router.dart';
+import 'package:bai_01/features/carts/data/repositories/cart_repository.dart';
+import 'package:bai_01/features/carts/presentation/bloc/cart_bloc/cart_bloc.dart';
+import 'package:bai_01/features/carts/presentation/bloc/cart_bloc/cart_event.dart';
+import 'package:bai_01/features/carts/presentation/pages/customer_carts_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../bloc/customer_bloc.dart';
 import '../bloc/customer_event.dart';
@@ -116,7 +122,53 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                       ),
                     ],
                   ),
+                    const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // nút : đơn hàng
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.shopping_cart),
+                        label: const Text('Đơn Hàng', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BlocProvider(
+                                create: (context) => CartBloc(
+                                  context.read<CartRepository>(), 
+                                )..add(LoadCartsByUserEvent(customer.id)),
+                                child: CustomerCartsPage(userId: customer.id),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      // nút : hỗ trọw
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          backgroundColor: Colors.orangeAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.support_agent),
+                        label: const Text('Hỗ Trợ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          context.push(AppRouter.helpSupport, extra: customer.id); 
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
                   const Divider(height: 32),
+
                   ListTile(
                     //hiển thị tt không có pass hay bank 
                     leading: const Icon(Icons.email),

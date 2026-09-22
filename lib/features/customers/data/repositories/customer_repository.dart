@@ -1,6 +1,5 @@
 import '../../domain/models/customer_model.dart';
 import '../data_sources/customer_remote_data_source.dart';
-// THÊM IMPORT CHO LOCAL DATA SOURCE VÀO ĐÂY:
 import '../data_sources/customer_local_data_source.dart'; 
 import 'package:bai_01/features/products/domain/models/cache_retry_model.dart';
 

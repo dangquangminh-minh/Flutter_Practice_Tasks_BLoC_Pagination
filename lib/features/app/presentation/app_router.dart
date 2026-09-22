@@ -1,7 +1,8 @@
 import 'package:bai_01/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:bai_01/features/auth/presentation/pages/otp_verification_page.dart';
 import 'package:bai_01/features/auth/presentation/pages/reset_password_page.dart' show ResetPasswordPage;
-import 'package:bai_01/features/profile/presentation/pages/help_support_page.dart';
+import 'package:bai_01/features/carts/presentation/pages/active_cart_page.dart';
+import 'package:bai_01/features/support/presentation/pages/help_support_page.dart';
 import 'package:bai_01/features/profile/presentation/pages/settings_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bai_01/features/app/presentation/pages/dashboard_page.dart';
@@ -15,6 +16,7 @@ import 'package:bai_01/features/customers/presentation/pages/customer_detail_pag
 import 'package:bai_01/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:bai_01/features/profile/presentation/pages/change_password_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 class AppRouter {
   static const String product = '/product'; //cache_retry // tránh gõ sai đg link chỉ gần gọi approuter.product
   static const String customer = '/customer';
@@ -30,6 +32,7 @@ class AppRouter {
   static const String forgotPassword = '/forgot-password';
   static const String otp = '/otp';
   static const String resetPassword = '/reset-password';
+  static const String activeCart = '/active-cart';
   
   static final GoRouter router = GoRouter(
     initialLocation: splash, // mới chạy app là bay dô splash
@@ -75,7 +78,11 @@ class AppRouter {
 
       GoRoute(
         path: helpSupport,
-        builder: (context, state) => const HelpSupportPage(),
+        builder: (context, state) {
+          final customerId = state.extra as int? ?? 0;
+
+          return HelpSupportPage(customerId: customerId);
+        } 
       ),
       
       GoRoute(
@@ -112,6 +119,10 @@ class AppRouter {
         builder: (context, state) => const RegisterPage(),// đký
       ), 
 
+      GoRoute(
+        path: activeCart,
+        builder: (context, state) => const ActiveCartPage(),
+      ),
 
       GoRoute(
         path: AppRouter.customerDetail, // tương đương '/customer-detail/:id'

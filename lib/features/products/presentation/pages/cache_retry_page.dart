@@ -1,5 +1,10 @@
+import 'package:bai_01/features/app/presentation/app_router.dart';
+import 'package:bai_01/features/carts/presentation/bloc/active_cart_bloc/active_cart_bloc.dart';
+import 'package:bai_01/features/carts/presentation/bloc/active_cart_bloc/active_cart_event.dart';
+import 'package:bai_01/features/carts/presentation/bloc/active_cart_bloc/active_cart_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/cache_retry_bloc.dart';
 import '../bloc/cache_retry_event.dart';
 import '../bloc/cache_retry_state.dart';
@@ -59,6 +64,27 @@ class _ProductPage6State extends State<ProductPage6> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Danh Sách Sản Phẩm'),
+        actions: [
+          BlocBuilder<ActiveCartBloc, ActiveCartState>(
+            builder: (context, state) {
+              int totalQuantity = 0;
+              if (state is ActiveCartUpdated) {
+                totalQuantity = state.cart.totalQuantity;
+              }
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: totalQuantity > 0, //chỉ hiện >0 
+                  label: Text('$totalQuantity'),
+                  child: const Icon(Icons.shopping_cart_outlined, size: 28),
+                ),
+                onPressed: () {
+                    context.push(AppRouter.activeCart); 
+                  },
+              );
+            },
+          ),
+          const SizedBox(width: 12), 
+        ],
         elevation: 0,
       ),
 
@@ -418,15 +444,41 @@ class _ProductPage6State extends State<ProductPage6> {
           ),
           
           // nút thả tim
-          IconButton(
-            icon: Icon(
-              product.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: product.isFavorite ? Colors.red : Colors.grey,
+          Row(
+          mainAxisSize: MainAxisSize.min, // Để Row không chiếm hết chỗ
+          children: [
+            // Nút thả tim của sếp (giữ nguyên)
+            IconButton(
+              icon: const Icon(Icons.favorite_border, color: Colors.grey),
+              onPressed: () {
+                // Logic thả tim
+              },
             ),
-            onPressed: () {
-              context.read<ProductBloc6>().add(ToggleFavorite6(product));
-            },
-          ),
+            // THÊM NÚT GIỎ HÀNG VÀO ĐÂY:
+            IconButton(
+              icon: const Icon(Icons.add_shopping_cart, color: Colors.blueAccent),
+              onPressed: () {
+                // Gọi BLoC thêm vào giỏ (như tui hướng dẫn ở bước trước)
+                context.read<ActiveCartBloc>().add(
+                  AddProductToCart(
+                    productId: product.id, 
+                    title: product.title, 
+                    price: product.price, 
+                    discountPercentage: 0.0, 
+                  ),
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã thêm ${product.title} vào giỏ!'),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
 
           // menu sửa ,xóa sp
           PopupMenuButton<String>(

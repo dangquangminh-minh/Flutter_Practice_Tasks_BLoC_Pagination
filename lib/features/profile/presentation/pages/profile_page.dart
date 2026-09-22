@@ -1,3 +1,5 @@
+import 'package:bai_01/features/support/presentation/bloc/support_bloc.dart';
+import 'package:bai_01/features/support/presentation/bloc/support_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -128,7 +130,26 @@ class _ProfilePageState extends State<ProfilePage> {
                     context.push(AppRouter.settings); // Mở trang Settings lên
                   }),
                   _buildMenuRow(Icons.help_outline, 'Trợ giúp & Hỗ trợ', () {
-                    context.push(AppRouter.helpSupport); 
+                    final currentState = context.read<ProfileBloc>().state;
+                    
+                    // trạng thái pk laod xong và có id
+                    if (currentState is ProfileLoaded && currentState.userData['id'] != null) {
+                      
+                      // lấy đúng id ng đó ra xài
+                      final myUserId = currentState.userData['id'] as int; 
+
+                      context.read<SupportBloc>().add(LoadTicketsEvent(myUserId)); 
+                      context.push(AppRouter.helpSupport); 
+                      
+                    } else {
+                      // nếu chưa load xong or mất mạng k lấy id đc thì chặn , báo lỗi
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Chưa tải được thông tin tài khoản, vui lòng thử lại!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }),
 
                   const SizedBox(height: 16),
