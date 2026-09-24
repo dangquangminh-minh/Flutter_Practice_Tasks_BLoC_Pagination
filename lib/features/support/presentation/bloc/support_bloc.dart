@@ -72,11 +72,11 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
           ));
 
           try {
-            await repository.addTicket(event.title, event.body, event.userId);
+            await repository.addTicket(localTicket);
           } catch (e) {
             debugPrint('[SupportBloc] addTicket API fallback triggered: $e');
             repository.saveTicketToLocalCache(localTicket);
-            // Báo cho người dùng biết là đã lưu offline
+            // báo cho ng dùng đã lưu off
             emit(currentState.copyWith(errorMessage: 'Đã lưu ticket ngoại tuyến (Offline)'));
             emit(currentState.copyWith(errorMessage: null));
           }
@@ -90,9 +90,21 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
       final currentState = state;
       if (currentState is SupportLoaded) {
         try {
-          final comments = await repository.getCommentsByPostId(event.ticketId);
+          //api cmt trên server
+          final apiComments = await repository.getCommentsByPostId(event.ticketId);
+          //ds cmt trên ui
+          final existingComments = currentState.commentsMap[event.ticketId] ?? [];
+          final localOnlyComments = existingComments.where((c) {
+            final id = c['id'];
+            return id != null && id is int && id > 1000000; //nhận bt cmt tự tạo ̣(DateTime.now().millisecondsSinceEpoch) 
+          }).toList();
+
+          // gộp 2 loại 
+          final combinedComments = [...apiComments, ...localOnlyComments];
+
           final updatedCommentsMap = Map<int, List<dynamic>>.from(currentState.commentsMap);
-          updatedCommentsMap[event.ticketId] = comments;
+          updatedCommentsMap[event.ticketId] = combinedComments;
+          
           emit(currentState.copyWith(commentsMap: updatedCommentsMap));
         } catch (e) {
           emit(currentState.copyWith(errorMessage: 'Lỗi tải bình luận.'));
@@ -104,11 +116,8 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
     on<ChangeTicketStatusEvent>((event, emit) async {
       final currentState = state;
       if (currentState is SupportLoaded) {
-        // khai báo lại biến newStatuses
         final newStatuses = Map<int, String>.from(currentState.ticketStatuses);
-        newStatuses[event.ticketId] = event.newStatus;
-        
-        // khai báo lại biến currentTicket để lấy userId
+        newStatuses[event.ticketId] = event.newStatus;     
         final currentTicket = currentState.tickets.firstWhere((t) => t.id == event.ticketId);
 
         // lưu xuống
@@ -168,7 +177,6 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
         if (currentState is SupportLoaded) {
           final newCommentsMap = Map<int, List<dynamic>>.from(currentState.commentsMap);
           final currentComments = List<dynamic>.from(newCommentsMap[event.ticketId] ?? []);
-          
           final index = currentComments.indexWhere((comment) => comment['id'] == event.commentId);
           
           if (index != -1) {
@@ -176,8 +184,12 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
             updatedComment['body'] = event.newBody; 
             currentComments[index] = updatedComment;
             newCommentsMap[event.ticketId] = currentComments;
-
-            emit(currentState.copyWith(commentsMap: newCommentsMap));           
+            emit(currentState.copyWith(commentsMap: newCommentsMap)); // vẽ lại ui liền
+          }
+          try {
+            await repository.updateComment(event.commentId, event.newBody);
+          } catch (e) {
+            debugPrint('Bỏ qua lỗi sửa cmt ảo');
           }
         }
       },
@@ -191,11 +203,14 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
         if (currentState is SupportLoaded) {
           final newCommentsMap = Map<int, List<dynamic>>.from(currentState.commentsMap);
           final currentComments = List<dynamic>.from(newCommentsMap[event.ticketId] ?? []);
-          
           currentComments.removeWhere((comment) => comment['id'] == event.commentId);
           newCommentsMap[event.ticketId] = currentComments;
-
-          emit(currentState.copyWith(commentsMap: newCommentsMap));
+          emit(currentState.copyWith(commentsMap: newCommentsMap)); 
+          try {
+            await repository.deleteComment(event.commentId);
+          } catch (e) {
+             debugPrint('Bỏ qua lỗi xóa cmt ảo');
+          }
         }
       },
       transformer: droppable(),
@@ -206,23 +221,22 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
       (event, emit) async {
         final currentState = state;
         if (currentState is SupportLoaded) {
+          final updatedTickets = currentState.tickets.map((ticket) {
+            if (ticket.id == event.ticketId) {
+              return SupportTicket(
+                id: ticket.id,
+                title: event.newTitle,
+                body: event.newBody,
+                userId: ticket.userId,
+              );
+            }
+            return ticket;
+          }).toList();
+          emit(currentState.copyWith(tickets: updatedTickets)); 
           try {
-            await Future.delayed(const Duration(milliseconds: 500));
-            final updatedTickets = currentState.tickets.map((ticket) {
-              if (ticket.id == event.ticketId) {
-                return SupportTicket(
-                  id: ticket.id,
-                  title: event.newTitle,
-                  body: event.newBody,
-                  userId: ticket.userId,
-                );
-              }
-              return ticket;
-            }).toList();
-            emit(currentState.copyWith(tickets: updatedTickets));
+            await repository.updateTicket(event.ticketId, event.newTitle, event.newBody);
           } catch (e) {
-            emit(currentState.copyWith(errorMessage: 'Lỗi sửa vé hỗ trợ.'));
-            emit(currentState.copyWith(errorMessage: null));
+            debugPrint('Bỏ qua lỗi sửa ticket ảo');
           }
         }
       },
@@ -234,15 +248,14 @@ class SupportBloc extends Bloc<SupportEvent, SupportState> {
       (event, emit) async {
         final currentState = state;
         if (currentState is SupportLoaded) {
+          final updatedTickets = currentState.tickets
+              .where((ticket) => ticket.id != event.ticketId)
+              .toList();
+          emit(currentState.copyWith(tickets: updatedTickets)); 
           try {
-            await Future.delayed(const Duration(milliseconds: 500));
-            final updatedTickets = currentState.tickets
-                .where((ticket) => ticket.id != event.ticketId)
-                .toList();
-            emit(currentState.copyWith(tickets: updatedTickets));
+            await repository.deleteTicket(event.ticketId);
           } catch (e) {
-            emit(currentState.copyWith(errorMessage: 'Lỗi xóa vé hỗ trợ.'));
-            emit(currentState.copyWith(errorMessage: null));
+            debugPrint('Bỏ qua lỗi xóa ticket ảo');
           }
         }
       },

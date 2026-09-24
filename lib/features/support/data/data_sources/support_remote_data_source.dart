@@ -43,6 +43,38 @@ class SupportRemoteDataSource {
     throw Exception('Không thể tạo ticket mới');
   }
 
+
+  // update ticket
+  Future<SupportTicket> updateTicket(int ticketId, String newTitle, String newBody) async {
+    try {
+      final response = await dio.put(
+        'https://dummyjson.com/posts/$ticketId',
+        data: {
+          'title': newTitle,
+          'body': newBody,
+        },
+      );
+      if (response.statusCode == 200) {
+        return SupportTicket.fromJson(response.data);
+      }
+      throw Exception('Lỗi server khi cập nhật ticket');
+    } catch (e) {
+      throw Exception('Không thể cập nhật ticket. Chi tiết: $e');
+    }
+  }
+
+  // xóa Ticket
+  Future<void> deleteTicket(int ticketId) async {
+    try {
+      final response = await dio.delete('https://dummyjson.com/posts/$ticketId');
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi server khi xóa ticket');
+      }
+    } catch (e) {
+      throw Exception('Không thể xóa ticket. Chi tiết: $e');
+    }
+  }
+
   // lấy ds comment
   Future<List<dynamic>> getCommentsByPostId(int ticketId) async {
     final response = await dio.get('https://dummyjson.com/comments/post/$ticketId');

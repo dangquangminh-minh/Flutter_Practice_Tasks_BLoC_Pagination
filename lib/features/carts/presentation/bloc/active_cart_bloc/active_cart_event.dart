@@ -24,3 +24,5 @@ class RemoveProductFromCart extends ActiveCartEvent {
   final int productId;
   RemoveProductFromCart(this.productId);
 }
+
+class ClearActiveCartEvent extends ActiveCartEvent {}

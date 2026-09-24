@@ -90,15 +90,46 @@ class SupportRepository {
   }
 
 
-  Future<SupportTicket> addTicket(String title, String body, int userId) async {
-    final newTicket = await remoteDataSource.addTicket(title, body, userId);
-    _localTicketsCache.insert(0, newTicket);
-    return newTicket;
+  Future<void> addTicket(SupportTicket ticket) async {
+    try {
+      // gọi api
+      await remoteDataSource.addTicket(ticket.title, ticket.body, ticket.userId);
+    } catch (e) {
+      debugPrint('API lỗi do Mock Backend: $e');
+    }
+    
+    // lưu ticketid
+    _localTicketsCache.insert(0, ticket);
+  }
+
+ Future<void> updateTicket(int ticketId, String newTitle, String newBody) async {
+    // cập nhật localcache
+    final index = _localTicketsCache.indexWhere((t) => t.id == ticketId);
+    if (index != -1) {
+      final oldTicket = _localTicketsCache[index];
+      _localTicketsCache[index] = SupportTicket(
+        id: oldTicket.id,
+        userId: oldTicket.userId,
+        title: newTitle,
+        body: newBody,
+      );
+    }   
+    try {
+      await remoteDataSource.updateTicket(ticketId, newTitle, newBody); 
+    } catch (e) {
+      debugPrint('API lỗi do Mock Backend: $e');
+    }
   }
 
   Future<void> deleteTicket(int ticketId) async {
+    // xóa khỏi localcache trc
     _deletedTicketIdsCache.add(ticketId);
     _localTicketsCache.removeWhere((t) => t.id == ticketId);
+    try {
+      await remoteDataSource.deleteTicket(ticketId);
+    } catch (e) {
+      debugPrint('API lỗi do Mock Backend: $e');
+    }
   }
 
   Future<List<dynamic>> getCommentsByPostId(int ticketId) async {

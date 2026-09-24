@@ -31,6 +31,11 @@ class ActiveCartBloc extends Bloc<ActiveCartEvent, ActiveCartState> {
       _onRemoveProduct,
       transformer: droppable(), 
     );
+
+    on<ClearActiveCartEvent>(
+      _onClearCart,
+      transformer: droppable(),
+    );
   }
 
 
@@ -99,6 +104,10 @@ class ActiveCartBloc extends Bloc<ActiveCartEvent, ActiveCartState> {
     }
   }
 
+  Future<void> _onClearCart(ClearActiveCartEvent event, Emitter<ActiveCartState> emit) async {
+    _recalculateAndEmit([], emit);
+  }
+
   // tính tổng tiền và tổng slg
   void _recalculateAndEmit(List<CartProductModel> products, Emitter<ActiveCartState> emit) {
     double total = 0;
@@ -126,4 +135,6 @@ class ActiveCartBloc extends Bloc<ActiveCartEvent, ActiveCartState> {
 
     emit(ActiveCartUpdated(_currentCart));
   }
+
+  
 }

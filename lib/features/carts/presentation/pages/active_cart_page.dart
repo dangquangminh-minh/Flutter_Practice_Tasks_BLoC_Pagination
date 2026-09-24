@@ -136,18 +136,43 @@ class ActiveCartPage extends StatelessWidget {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20), 
+                          ),
                         ),
-                        onPressed: () {
-
+                        onPressed: () async {
+                          // hiện tb đang xử lý
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Chưa')),
+                            const SnackBar(
+                              content: Text('Đang xử lý thanh toán...'),
+                              duration: Duration(seconds: 1),
+                            ),
                           );
+
+                          // giả lập chờ 2s
+                          await Future.delayed(const Duration(seconds: 2));
+                          if (context.mounted) {
+                            
+                            // xóa giỏ
+                            context.read<ActiveCartBloc>().add(ClearActiveCartEvent());
+
+                            // ok và quay lại
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Thanh toán thành công!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pop(context); 
+                          }
                         },
-                        child: const Text('MUA HÀNG', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
+                        child: const Text(
+                          'Mua hàng',
+                          style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      )
                     ],
                   ),
                 ),
